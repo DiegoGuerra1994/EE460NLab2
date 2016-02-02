@@ -409,10 +409,35 @@ int main(int argc, char *argv[]) {
 void process_instruction(){
   /*  function: process_instruction
    *  
-   *    Process one instruction at a time  
-   *       -Fetch one instruction
-   *       -Decode 
-   *       -Execute
+   *  /*  Process one instruction at a time  */
+   /*1) Fetch the current instruction */
+   int mach_code = (MEMORY[CURRENT_LATCHES.PC >> 1][1] << 8) + MEMORY[CURRENT_LATCHES.PC >> 1][0];
+   printf("Current Machine code: 0x%.4x   ", mach_code);
+   /*2)Decode */
+   int opcode = mach_code >> 12;
+   switch (opcode){
+      case 0:
+        printf("Opcode = BR");
+        break;
+      case 1:
+        printf("Opcode = ADD");
+        
+        break;
+      case 2:
+        printf("Opcode = LDB");
+        break;
+      case 3:
+        printf("Opcode = STB");
+        break;
+      case 14:
+        printf("Opcode = LEA");
+        break;
+      default:
+        printf("Opcode = TRAP");
+        break;
+   }
+   
+   /*       -Execute
    *       -Update NEXT_LATCHES
    */     
 
