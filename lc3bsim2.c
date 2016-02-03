@@ -406,17 +406,17 @@ int main(int argc, char *argv[]) {
 
 /*sets the condition codes given a number */
 void setNZP (int result){
-  CURRENT_LATCHES.N = 0;
-  CURRENT_LATCHES.Z = 0;
-  CURRENT_LATCHES.P = 0;
+  NEXT_LATCHES.N = 0;
+  NEXT_LATCHES.Z = 0;
+  NEXT_LATCHES.P = 0;
   if (result > 0){
-    CURRENT_LATCHES.P = 1;
+    NEXT_LATCHES.P = 1;
   }
   else if (result < 0){
-    CURRENT_LATCHES.N = 1;
+    NEXT_LATCHES.N = 1;
   }
   else {
-    CURRENT_LATCHES.Z = 1;
+    NEXT_LATCHES.Z = 1;
   }
 }
 
@@ -451,7 +451,7 @@ void process_instruction(){
           /*NEXT_LATCHES.REGS[DR] = Low16bits(CURRENT_LATCHES.REGS[SR1] + CURRENT_LATCHES.REGS[SR2]); */
           result = CURRENT_LATCHES.REGS[SR1] + CURRENT_LATCHES.REGS[SR2]; 
           NEXT_LATCHES.REGS[DR] = Low16bits(result);
-          printf("Opcode = ADD, register.......DR: %i, SR1: %i, result: %i \n", DR, SR1, SR2, result);
+          printf("Opcode = ADD, register.......DR: %i, SR1: %i, SR2: %i, result: %i \n", DR, SR1, SR2, result);
         }
 
         setNZP (result);
@@ -462,17 +462,77 @@ void process_instruction(){
       case 3:
         printf("Opcode = STB");
         break;
-      case 14:
+      case 4:
         printf("Opcode = LEA");
         break;
+      case 5:
+      /*AND Instruction*/
+        DR = (mach_code & 0x0E00) >> 9;
+        SR1 = (mach_code & 0x01C0) >> 6;
+        if ((mach_code & 0x20) >> 4){
+           immediate = mach_code & 0x001F;
+           result = CURRENT_LATCHES.REGS[SR1] & immediate; 
+           printf("Opcode = AND, immediate.......DR: %i, SR1: %i, imm5: %i, result: %i \n", DR, SR1, immediate, result);
+           NEXT_LATCHES.REGS[DR] = Low16bits(result);
+           printf("Register %i \n", NEXT_LATCHES.REGS[DR]);
+        }
+        else{
+          SR2 = mach_code & 0x0007;
+          /*NEXT_LATCHES.REGS[DR] = Low16bits(CURRENT_LATCHES.REGS[SR1] + CURRENT_LATCHES.REGS[SR2]); */
+          result = CURRENT_LATCHES.REGS[SR1] & CURRENT_LATCHES.REGS[SR2]; 
+          NEXT_LATCHES.REGS[DR] = Low16bits(result);
+          printf("Opcode = AND, register.......DR: %i, SR1: %i, SR2: %i, result: %i \n", DR, SR1, SR2, result);
+        }
+        break;
+
+      /*LDW*/ 
+      case 6: 
+      break;
+
+      /*STW*/
+      case 7: 
+      break;
+
+      /*XOR*/
+      case 9: 
+      DR = (mach_code & 0x0E00) >> 9;
+      SR1 = (mach_code & 0x01C0) >> 6;
+        if ((mach_code & 0x20) >> 4){
+           immediate = mach_code & 0x001F;
+           result = CURRENT_LATCHES.REGS[SR1] & immediate; 
+           printf("Opcode = AND, immediate.......DR: %i, SR1: %i, imm5: %i, result: %i \n", DR, SR1, immediate, result);
+           NEXT_LATCHES.REGS[DR] = Low16bits(result);
+           printf("Register %i \n", NEXT_LATCHES.REGS[DR]);
+        }
+        else{
+          SR2 = mach_code & 0x0007;
+          /*NEXT_LATCHES.REGS[DR] = Low16bits(CURRENT_LATCHES.REGS[SR1] + CURRENT_LATCHES.REGS[SR2]); */
+          result = CURRENT_LATCHES.REGS[SR1] & CURRENT_LATCHES.REGS[SR2]; 
+          NEXT_LATCHES.REGS[DR] = Low16bits(result);
+          printf("Opcode = AND, register.......DR: %i, SR1: %i, SR2: %i, result: %i \n", DR, SR1, SR2, result);
+        }  
+      break;
+
+      /*JMP*/
+      case 12: 
+      break;
+
+      /*SHF*/
+      case 13: 
+      break;
+
+      /*LEA*/
+      case 14: 
+      break;
+
+      /*TRAP*/
+      case 15: 
+      break;
+
       default:
         printf("Opcode = TRAP");
         break;
    }
    
-   /*       -Execute */
-
-   /*       -Update NEXT_LATCHES */
-}
-
-
+   NEXT_LATCHES.PC = CURRENT_LATCHES.PC + 2; 
+ }
