@@ -421,6 +421,9 @@ void setNZP (int result){
 }
 
 void process_instruction(){
+  #define MASK11TO9 0x0E00
+  #define MASK5TO0  0x003F
+  #define MASK8TO6  0x01C0
   /*  function: process_instruction
    *  
    *  /*  Process one instruction at a time  */
@@ -430,6 +433,7 @@ void process_instruction(){
    /*2)Decode */
    int opcode = mach_code >> 12;
    int immediate = 0;
+   int offset = 0;
    int DR, SR1, SR2, result;
    switch (opcode){
       case 0:
@@ -456,8 +460,17 @@ void process_instruction(){
 
         setNZP (result);
         break;
+       /* Andrew is doing LDB, STB, LEA*/
+      /*LDB*/
       case 2:
-        printf("Opcode = LDB");
+        DR = (mach_code & MASK11TO9) >> 9;
+        SR1 = (mach_code & MASK8TO6) >> 6;
+        offset = (mach_code & MASK5TO0);
+        result = MEMORY[CURRENT_LATCHES.REGS[SR1] + offset][1]; 
+        NEXT_LATCHES.REGS[DR] = Low16bits(result);
+        /* =============SET NZP BITS HERE============= */
+        printf("Opcode = LDB.......DR: %i, offset: %i, SR1: %i, result: %i \n", DR, offset, SR1, result);
+
         break;
       case 3:
         printf("Opcode = STB");
