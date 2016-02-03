@@ -404,7 +404,21 @@ int main(int argc, char *argv[]) {
 
 /***************************************************************/
 
-
+/*sets the condition codes given a number */
+void setNZP (int result){
+  CURRENT_LATCHES.N = 0;
+  CURRENT_LATCHES.Z = 0;
+  CURRENT_LATCHES.P = 0;
+  if (result > 0){
+    CURRENT_LATCHES.P = 1;
+  }
+  else if (result < 0){
+    CURRENT_LATCHES.N = 1;
+  }
+  else {
+    CURRENT_LATCHES.Z = 1;
+  }
+}
 
 void process_instruction(){
   /*  function: process_instruction
@@ -412,16 +426,35 @@ void process_instruction(){
    *  /*  Process one instruction at a time  */
    /*1) Fetch the current instruction */
    int mach_code = (MEMORY[CURRENT_LATCHES.PC >> 1][1] << 8) + MEMORY[CURRENT_LATCHES.PC >> 1][0];
-   printf("Current Machine code: 0x%.4x   ", mach_code);
+   printf("Current Machine code: 0x%.4x\n", mach_code);
    /*2)Decode */
    int opcode = mach_code >> 12;
+   int immediate = 0;
+   int DR, SR1, SR2, result;
    switch (opcode){
       case 0:
         printf("Opcode = BR");
         break;
       case 1:
-        printf("Opcode = ADD");
-        
+         /*test bit 5 */
+        DR = (mach_code & 0x0E00) >> 9;
+        SR1 = (mach_code & 0x01C0) >> 6;
+        if ((mach_code & 0x20) >> 4){
+           immediate = mach_code & 0x001F;
+           result = CURRENT_LATCHES.REGS[SR1] + immediate; 
+           printf("Opcode = ADD, immediate.......DR: %i, SR1: %i, imm5: %i, result: %i \n", DR, SR1, immediate, result);
+           NEXT_LATCHES.REGS[DR] = Low16bits(result);
+           printf("Register %i \n", NEXT_LATCHES.REGS[DR]);
+        }
+        else{
+          SR2 = mach_code & 0x0007;
+          /*NEXT_LATCHES.REGS[DR] = Low16bits(CURRENT_LATCHES.REGS[SR1] + CURRENT_LATCHES.REGS[SR2]); */
+          result = CURRENT_LATCHES.REGS[SR1] + CURRENT_LATCHES.REGS[SR2]; 
+          NEXT_LATCHES.REGS[DR] = Low16bits(result);
+          printf("Opcode = ADD, register.......DR: %i, SR1: %i, result: %i \n", DR, SR1, SR2, result);
+        }
+
+        setNZP (result);
         break;
       case 2:
         printf("Opcode = LDB");
@@ -437,10 +470,9 @@ void process_instruction(){
         break;
    }
    
-   /*       -Execute
-   *       -Update NEXT_LATCHES
-   */     
+   /*       -Execute */
 
+   /*       -Update NEXT_LATCHES */
 }
 
 
