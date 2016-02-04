@@ -405,7 +405,7 @@ int main(int argc, char *argv[]) {
 /***************************************************************/
 
 /*sets the condition codes given a number */
-void setNZP (int result){
+void setNZP (int result, int numBits){
   NEXT_LATCHES.N = 0;
   NEXT_LATCHES.Z = 0;
   NEXT_LATCHES.P = 0;
