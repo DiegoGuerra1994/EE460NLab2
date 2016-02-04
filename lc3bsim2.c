@@ -404,13 +404,15 @@ int main(int argc, char *argv[]) {
 
 /***************************************************************/
 
+#define Low8bits(x) ((x) & 0xFF)
+
 /*sets the condition codes given a number */
-void setNZP (int result, int numBits){
+void setNZP (int result){
   NEXT_LATCHES.N = 0;
   NEXT_LATCHES.Z = 0;
   NEXT_LATCHES.P = 0;
   /*Check to see if number is negative by masking most significant bit and shifting*/
-  if(result < 0){ 
+  if(result > 0){ 
       NEXT_LATCHES.N = 1;
   }
   else if(result == 0){
@@ -421,8 +423,9 @@ void setNZP (int result, int numBits){
   }
 }
 
+/*sign extends num given its length (numBits) */
 int sEXT(int num, int numBits){
-  int mask = num >> (numBits-1);
+  int mask = num >> (numBits - 1);
   printf("This is the mask: %i \n", mask);
   if(mask == 1){
       num += (0xFFFFFFFF << numBits); 
@@ -445,7 +448,7 @@ void process_instruction(){
    int opcode = mach_code >> 12;
    int immediate = 0;
    int offset = 0;
-   int DR, mask, SR1, SR2, result;
+   int DR, mask, SR1, SR2, result, baseR;
    switch (opcode){
       case 0:
         printf("Opcode = BR");
@@ -479,21 +482,37 @@ void process_instruction(){
        /* Andrew is doing LDB, STB, LEA*/
       /*LDB*/
       case 2:
-        DR = (mach_code & MASK11TO9) >> 9;
-        SR1 = (mach_code & MASK8TO6) >> 6;
+        SR1 = (mach_code & MASK11TO9) >> 9;
+        baseR = (mach_code & MASK8TO6) >> 6;
         offset = (mach_code & MASK5TO0);
-        result = MEMORY[CURRENT_LATCHES.REGS[SR1] + offset][1]; 
+        result = sEXT(MEMORY[CURRENT_LATCHES.REGS[SR1] + offset][0], 8); 
+        printf ("address: %i\n", CURRENT_LATCHES.REGS[SR1] + offset);
         NEXT_LATCHES.REGS[DR] = Low16bits(result);
-        /* =============SET NZP BITS HERE============= */
+        setNZP(result);
         printf("Opcode = LDB.......DR: %i, offset: %i, SR1: %i, result: %i \n", DR, offset, SR1, result);
+        break;
 
-        break;
+      /*STB*/
       case 3:
-        printf("Opcode = STB");
+        SR1 = (mach_code & MASK11TO9) >> 9;
+        baseR = (mach_code & MASK8TO6) >> 6;
+        offset = sEXT((mach_code & MASK5TO0),6);
+        result = CURRENT_LATCHES.REGS[baseR] + offset;
+        printf ("address: %i\n", result);
+         /*store one byte into LSB or MSB depending on mem addr is odd or even*/ 
+         /*Shift left 1 since mem is byte addressable */
+        if (result & 0x1 == 1){
+          MEMORY[result >> 1][1] = Low8bits(CURRENT_LATCHES.REGS[SR1]); 
+        }
+        else{
+          MEMORY[result >> 1][0] = Low8bits(CURRENT_LATCHES.REGS[SR1]); 
+        }
+        printf("Opcode = STB.......SR: %i, offset: %i, BaseReg: %i, address: %i \n", SR1, offset, baseR, result);      
         break;
+
       case 4:
-        printf("Opcode = LEA");
         break;
+
       case 5:
       /*AND Instruction*/
         DR = (mach_code & 0x0E00) >> 9;
@@ -520,6 +539,15 @@ void process_instruction(){
 
       /*STW*/
       case 7: 
+      SR1 = (mach_code & MASK11TO9) >> 9;
+      baseR = (mach_code & MASK8TO6) >> 6;
+      offset = sEXT((mach_code & MASK5TO0),6) << 1;
+      result = CURRENT_LATCHES.REGS[baseR] + offset;
+      printf ("address: %i\n", result);
+       /*store word into memory one byte at a time. Shift left 1 since mem is byte addressable */
+      MEMORY[result >> 1][0] = Low8bits(CURRENT_LATCHES.REGS[SR1]); 
+      MEMORY[result >> 1][1] = Low8bits(CURRENT_LATCHES.REGS[SR1] >> 16); 
+      printf("Opcode = STW.......SR: %i, offset: %i, BaseReg: %i, address: %i \n", SR1, offset, baseR, result);
       break;
 
       /*XOR*/
@@ -528,7 +556,7 @@ void process_instruction(){
       SR1 = (mach_code & 0x01C0) >> 6;
         if  ((mach_code & 0x20) >> 4){
            immediate = sEXT((mach_code & 0x001F), 5);
-           printf("this is the immediate: %i \n", immediate);
+           printf("this is the immediate: %i\n", immediate);
            result = CURRENT_LATCHES.REGS[SR1] ^ immediate; 
            printf("Opcode = XOR, immediate.......DR: %i, SR1: %i, imm5: %i, result: %i \n", DR, SR1, immediate, result);
            NEXT_LATCHES.REGS[DR] = Low16bits(result);
@@ -571,13 +599,18 @@ void process_instruction(){
         /*RSHFA, sign is shifted*/
         else{
           NEXT_LATCHES.REGS[DR] = Low16bits(result >> immediate);
-          printf("Opcode = RSHFA, immediate.......DR: %i, SR1: %i, imm5: %im mask: %i\n", DR, SR1, immediate, mask>>4);
+          printf("Opcode = RSHFA, immediate.......DR: %i, SR1: %i, imm5: %i, mask: %i\n", DR, SR1, immediate, mask>>4);
         }
 
       break;
 
       /*LEA*/
       case 14: 
+        DR = (mach_code & MASK11TO9) >> 9;
+        result = (sEXT((mach_code & 0x01FF), 16) << 1) + CURRENT_LATCHES.PC + 2;
+        NEXT_LATCHES.REGS[DR] = result;
+        printf("Opcode = LEA.......DR: %i, address: 0x%.4x\n", DR, result);
+        setNZP(DR);
       break;
 
       /*TRAP*/

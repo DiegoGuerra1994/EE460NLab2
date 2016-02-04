@@ -1,0 +1,9 @@
+.ORIG x1234
+AND R0, R0, #0
+AND R1, R1, #0
+ADD R0, R0, #2
+ADD R1, R1, #5
+STW R0, R1, #0
+LDB R1, R0, #0
+.END
+
