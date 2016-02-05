@@ -544,6 +544,16 @@ void process_instruction(){
 
       /*LDW*/ 
       case 6: 
+        DR = (mach_code & MASK11TO9) >> 9;
+        baseR = (mach_code & MASK8TO6) >> 6;
+        offset = (mach_code & MASK5TO0);
+        result = (sEXT(MEMORY[(CURRENT_LATCHES.REGS[baseR] + offset) >> 1][1], 8) << 8) + MEMORY[(CURRENT_LATCHES.REGS[baseR] + offset) >> 1][0]; 
+        /*result =  MEMORY[(CURRENT_LATCHES.REGS[baseR] + offset) >> 1][0]; */
+        printf ("address: %i\n", CURRENT_LATCHES.REGS[baseR] + offset);
+        NEXT_LATCHES.REGS[DR] = Low16bits(result);
+        setNZP(result);
+        printf("Opcode = LDW.......DR: %i, offset: %i, baseR: %i, result: %i \n", DR, offset, baseR, result);
+        break;
       break;
 
       /*STW*/
@@ -555,7 +565,7 @@ void process_instruction(){
       printf ("address: %i\n", result);
        /*store word into memory one byte at a time. Shift left 1 since mem is byte addressable */
       MEMORY[result >> 1][0] = Low8bits(CURRENT_LATCHES.REGS[SR1]); 
-      MEMORY[result >> 1][1] = Low8bits(CURRENT_LATCHES.REGS[SR1] >> 16); 
+      MEMORY[result >> 1][1] = Low8bits(CURRENT_LATCHES.REGS[SR1] >> 8);  /*originally >> 16. Is 8 correct???*/
       printf("Opcode = STW.......SR: %i, offset: %i, BaseReg: %i, address: %i \n", SR1, offset, baseR, result);
       break;
 
