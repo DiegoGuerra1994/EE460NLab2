@@ -519,6 +519,18 @@ void process_instruction(){
 
       /*JSR and JSRR*/
       case 4:
+      NEXT_LATCHES.REGS[7] = CURRENT_LATCHES.PC;
+      if( (0x0800 & mach_code) == 0x0800){
+          offset = sEXT(machcode & 0x07FF, 11);
+          offset = offset << 1;
+          CURRENT_LATCHES.PC += offset;
+      }
+      else{
+        DR = (mach_code & 0x01C0) >> 6;
+        CURRENT_LATCHES.PC = CURRENT_LATCHES.REGS[DR]-2; /*I only did this so it wouldn't skip a line going to the subrouting*/
+      }
+
+
         break;
 
       /*AND*/
@@ -581,7 +593,9 @@ void process_instruction(){
       break;
 
       /*JMP*/
-      case 12: 
+      case 12:
+          DR = (mach_code & 0x01C0) >> 6;
+          CURRENT_LATCHES.PC = CURRENT_LATCHES.REGS[DR];
       break;
 
       /*SHF*/
@@ -624,6 +638,9 @@ void process_instruction(){
 
       /*TRAP*/
       case 15: 
+        immediate = mach_code & 0x000000FF;
+        NEXT_LATCHES.REGS[7] = CURRENT_LATCHES.PC;
+        CURRENT_LATCHES.PC = MEMORY[immediate << 1]-2; /*I only did this so it wouldn't skip a line going to the subrouting*/
       break;
 
       default:
