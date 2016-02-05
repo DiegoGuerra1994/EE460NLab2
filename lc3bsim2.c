@@ -1,10 +1,10 @@
 /*
     REFER TO THE SUBMISSION INSTRUCTION FOR DETAILS
 
-    Name 1: Full name of the first partner 
-    Name 2: Full name of the second partner
-    UTEID 1: UT EID of the first partner
-    UTEID 2: UT EID of the second partner
+    Name 1: Andrew Wong
+    Name 2: Diego Guerra  
+    UTEID 1: AW27772
+    UTEID 2: DAG3222
 */
 
 /***************************************************************/
@@ -423,7 +423,7 @@ void setNZP (int result){
   }
 }
 
-/*sign extends num given its length (numBits) */
+/*sign extends num to 32 bits given its original bit length (numBits) */
 int sEXT(int num, int numBits){
   int mask = num >> (numBits - 1);
   printf("This is the mask: %i \n", mask);
@@ -450,11 +450,18 @@ void process_instruction(){
    int offset = 0;
    int DR, mask, SR1, SR2, result, baseR;
    switch (opcode){
+      /*BR*/
       case 0:
-        printf("Opcode = BR");
+        /*test for specified condition codes*/
+        if (mach_code & 0x0800 || mach_code & 0x400 || mach_code & 0x200){ /*test N, Z, P bit*/
+          CURRENT_LATCHES.PC += (sEXT((mach_code & 0x01FF),9) << 1);
+          printf("BR......taken to address 0x%.4x, offset: %i\n", CURRENT_LATCHES.PC, (sEXT((mach_code & 0x01FF),9) << 1));
+        } 
+
+        printf("Opcode = BR.");
         break;
 
-       /*ADD*/ 
+      /*ADD*/ 
       case 1:
          /*test bit 5 */
         DR = (mach_code & 0x0E00) >> 9;
@@ -479,7 +486,7 @@ void process_instruction(){
 
         
         break;
-       /* Andrew is doing LDB, STB, LEA*/
+      /* Andrew is doing LDB, STB, LEA*/
       /*LDB*/
       case 2:
         SR1 = (mach_code & MASK11TO9) >> 9;
@@ -510,11 +517,13 @@ void process_instruction(){
         printf("Opcode = STB.......SR: %i, offset: %i, BaseReg: %i, address: %i \n", SR1, offset, baseR, result);      
         break;
 
+      /*JSR and JSRR*/
       case 4:
         break;
 
+      /*AND*/
       case 5:
-      /*AND Instruction*/
+      
         DR = (mach_code & 0x0E00) >> 9;
         SR1 = (mach_code & 0x01C0) >> 6;
         if ((mach_code & 0x20) >> 4){
