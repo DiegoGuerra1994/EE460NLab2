@@ -448,7 +448,7 @@ void process_instruction(){
    int opcode = mach_code >> 12;
    int immediate = 0;
    int offset = 0;
-   int DR, mask, SR1, SR2, result, baseR;
+   int DR, mask, SR1, SR2, result, baseR, addr;
    switch (opcode){
       /*BR*/
       case 0:
@@ -487,14 +487,23 @@ void process_instruction(){
         
         break;
       /* Andrew is doing LDB, STB, LEA*/
-      /*LDB*/
+      /*LDB - ANDREW SEZ CHECK THIS. MIGHT BE WRONG!!!*/
       case 2:
         DR = (mach_code & MASK11TO9) >> 9;
         baseR = (mach_code & MASK8TO6) >> 6;
         offset = (mach_code & MASK5TO0);
-        result = sEXT(MEMORY[CURRENT_LATCHES.REGS[baseR] + offset][0], 8); 
+        addr = CURRENT_LATCHES.REGS[baseR] + offset;
+         /*load one byte from memory depending on mem addr is odd or even*/ 
+         /*Shift left 1 since mem is byte addressable */
+        if (addr & 0x1){
+          result = Low16bits(sEXT(MEMORY[addr >> 1][1], 8));
+          NEXT_LATCHES.REGS[DR] = result;
+        }
+        else{
+          result = Low16bits(sEXT(MEMORY[addr >> 1][0], 8));
+          NEXT_LATCHES.REGS[DR] = result; 
+        }
         printf ("address: %i\n", CURRENT_LATCHES.REGS[baseR] + offset);
-        NEXT_LATCHES.REGS[DR] = Low16bits(result);
         setNZP(result);
         printf("Opcode = LDB.......DR: %i, offset: %i, SR1: %i, result: %i \n", DR, offset, SR1, result);
         break;
@@ -521,7 +530,7 @@ void process_instruction(){
       case 4:
       NEXT_LATCHES.REGS[7] = CURRENT_LATCHES.PC;
       if( (0x0800 & mach_code) == 0x0800){
-          offset = sEXT(machcode & 0x07FF, 11);
+          offset = sEXT(mach_code & 0x07FF, 11);
           offset = offset << 1;
           CURRENT_LATCHES.PC += offset;
       }
@@ -560,7 +569,6 @@ void process_instruction(){
         baseR = (mach_code & MASK8TO6) >> 6;
         offset = (mach_code & MASK5TO0);
         result = (sEXT(MEMORY[(CURRENT_LATCHES.REGS[baseR] + offset) >> 1][1], 8) << 8) + MEMORY[(CURRENT_LATCHES.REGS[baseR] + offset) >> 1][0]; 
-        /*result =  MEMORY[(CURRENT_LATCHES.REGS[baseR] + offset) >> 1][0]; */
         printf ("address: %i\n", CURRENT_LATCHES.REGS[baseR] + offset);
         NEXT_LATCHES.REGS[DR] = Low16bits(result);
         setNZP(result);
@@ -650,8 +658,10 @@ void process_instruction(){
       case 15: 
         immediate = mach_code & 0x000000FF;
         NEXT_LATCHES.REGS[7] = CURRENT_LATCHES.PC;
-        CURRENT_LATCHES.PC = MEMORY[immediate << 1]-2; /*I only did this so it wouldn't skip a line going to the subrouting*/
-      break;
+        /*I only did this so it wouldn't skip a line going to the subrouting*/
+        /*ANDREW SEZ: CHECK THIS PART!! MIGHT BE WRONG!!*/
+        CURRENT_LATCHES.PC = Low16bits((MEMORY[immediate << 1][1] << 8) + MEMORY[immediate << 1][0] - 2); 
+        break;
 
       default:
         printf("Opcode = TRAP");
