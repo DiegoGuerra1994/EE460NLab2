@@ -489,11 +489,11 @@ void process_instruction(){
       /* Andrew is doing LDB, STB, LEA*/
       /*LDB*/
       case 2:
-        SR1 = (mach_code & MASK11TO9) >> 9;
+        DR = (mach_code & MASK11TO9) >> 9;
         baseR = (mach_code & MASK8TO6) >> 6;
         offset = (mach_code & MASK5TO0);
-        result = sEXT(MEMORY[CURRENT_LATCHES.REGS[SR1] + offset][0], 8); 
-        printf ("address: %i\n", CURRENT_LATCHES.REGS[SR1] + offset);
+        result = sEXT(MEMORY[CURRENT_LATCHES.REGS[baseR] + offset][0], 8); 
+        printf ("address: %i\n", CURRENT_LATCHES.REGS[baseR] + offset);
         NEXT_LATCHES.REGS[DR] = Low16bits(result);
         setNZP(result);
         printf("Opcode = LDB.......DR: %i, offset: %i, SR1: %i, result: %i \n", DR, offset, SR1, result);
