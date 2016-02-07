@@ -407,12 +407,12 @@ int main(int argc, char *argv[]) {
 #define Low8bits(x) ((x) & 0xFF)
 
 /*sets the condition codes given a number */
-void setNZP (int result){
+/*void setNZP (int result){
   NEXT_LATCHES.N = 0;
   NEXT_LATCHES.Z = 0;
-  NEXT_LATCHES.P = 0;
+  NEXT_LATCHES.P = 0; */
   /*Check to see if number is negative by masking most significant bit and shifting*/
-  if(result > 0){ 
+ /* if(result > 0){ 
       NEXT_LATCHES.N = 1;
   }
   else if(result == 0){
@@ -420,6 +420,27 @@ void setNZP (int result){
   }
   else {
     NEXT_LATCHES.P = 1;
+  }
+} */
+
+/*sets the condition codes given a number */
+void setNZP (int result){
+  NEXT_LATCHES.N = 0;
+  NEXT_LATCHES.Z = 0;
+  NEXT_LATCHES.P = 0;
+  printf("number: %i", result);
+  /*Check to see if number is negative by masking most significant bit and shifting*/
+  if(result > 0){ 
+      NEXT_LATCHES.P = 1;
+      printf(" is positive\n", result);
+  }
+  else if(result == 0){
+    NEXT_LATCHES.Z = 1;
+    printf(" is zero\n", result);
+  }
+  else {
+    NEXT_LATCHES.N = 1;
+    printf(" is negative\n", result);
   }
 }
 
@@ -505,7 +526,7 @@ void process_instruction(){
         }
         printf ("address: %i\n", CURRENT_LATCHES.REGS[baseR] + offset);
         setNZP(result);
-        printf("Opcode = LDB.......DR: %i, offset: %i, SR1: %i, result: %i \n", DR, offset, SR1, result);
+        printf("Opcode = LDB.......DR: %i, offset: %i, baseR: %i, result: %i \n", DR, offset, baseR, result);
         break;
 
       /*STB*/
@@ -651,7 +672,7 @@ void process_instruction(){
         result = (sEXT((mach_code & 0x01FF), 16) << 1) + CURRENT_LATCHES.PC + 2;
         NEXT_LATCHES.REGS[DR] = result;
         printf("Opcode = LEA.......DR: %i, address: 0x%.4x\n", DR, result);
-        setNZP(DR);
+        /*setNZP(DR); */ /*LEA does not set condition codes*/
       break;
 
       /*TRAP*/
