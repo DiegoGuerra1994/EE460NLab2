@@ -575,13 +575,14 @@ void process_instruction(){
            immediate = sEXT((mach_code & 0x001F), 5);
            result = CURRENT_LATCHES.REGS[SR1] & immediate; 
            printf("Opcode = AND, immediate.......DR: %i, SR1: %i, imm5: %i, result: %i \n", DR, SR1, immediate, result);
+           setNZP(result);
            NEXT_LATCHES.REGS[DR] = Low16bits(result);
            printf("Register %i \n", NEXT_LATCHES.REGS[DR]);
         }
         else{
           SR2 = mach_code & 0x0007;
-          /*NEXT_LATCHES.REGS[DR] = Low16bits(CURRENT_LATCHES.REGS[SR1] + CURRENT_LATCHES.REGS[SR2]); */
           result = CURRENT_LATCHES.REGS[SR1] & CURRENT_LATCHES.REGS[SR2]; 
+          setNZP(result);
           NEXT_LATCHES.REGS[DR] = Low16bits(result);
           printf("Opcode = AND, register.......DR: %i, SR1: %i, SR2: %i, result: %i \n", DR, SR1, SR2, result);
         }
@@ -621,6 +622,7 @@ void process_instruction(){
            immediate = sEXT((mach_code & 0x001F), 5);
            printf("this is the immediate: %i\n", immediate);
            result = CURRENT_LATCHES.REGS[SR1] ^ immediate; 
+           setNZP(result);
            printf("Opcode = XOR, immediate.......DR: %i, SR1: %i, imm5: %i, result: %i \n", DR, SR1, immediate, result);
            NEXT_LATCHES.REGS[DR] = Low16bits(result);
            printf("Register %i \n", NEXT_LATCHES.REGS[DR]);
@@ -629,6 +631,7 @@ void process_instruction(){
           SR2 = mach_code & 0x0007;
           /*NEXT_LATCHES.REGS[DR] = Low16bits(CURRENT_LATCHES.REGS[SR1] + CURRENT_LATCHES.REGS[SR2]); */
           result = CURRENT_LATCHES.REGS[SR1] ^ CURRENT_LATCHES.REGS[SR2]; 
+          setNZP(result);
           NEXT_LATCHES.REGS[DR] = Low16bits(result);
           printf("Opcode = XOR, register.......DR: %i, SR1: %i, SR2: %i, result: %i \n", DR, SR1, SR2, result);
         }  
@@ -649,7 +652,9 @@ void process_instruction(){
         result = sEXT(CURRENT_LATCHES.REGS[SR1], 16);
         /*LSHF*/
         if(mask == 0x00){
-            NEXT_LATCHES.REGS[DR] = Low16bits(result << immediate);
+            result = result << immediate;
+            setNZP(result);
+            NEXT_LATCHES.REGS[DR] = Low16bits(result);
             printf("Opcode = LSHF, immediate.......DR: %i, SR1: %i, imm5: %im mask: %i\n", DR, SR1, immediate, mask>>4);
         }
         /*RSHFL, 0s are shifted in the vacated positions*/
@@ -659,11 +664,14 @@ void process_instruction(){
             result = (result >> 1) & 0x00007FFF;
             immediate--;
           }
+          setNZP(result);
           NEXT_LATCHES.REGS[DR] = Low16bits(result);
         }
         /*RSHFA, sign is shifted*/
         else{
-          NEXT_LATCHES.REGS[DR] = Low16bits(result >> immediate);
+          result = result >> immediate;
+          setNZP(result);
+          NEXT_LATCHES.REGS[DR] = Low16bits(result);
           printf("Opcode = RSHFA, immediate.......DR: %i, SR1: %i, imm5: %i, mask: %i\n", DR, SR1, immediate, mask>>4);
         }
 
