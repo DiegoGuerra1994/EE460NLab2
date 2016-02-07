@@ -474,12 +474,15 @@ void process_instruction(){
       /*BR*/
       case 0:
         /*test for specified condition codes*/
-        if (mach_code & 0x0800 || mach_code & 0x400 || mach_code & 0x200){ /*test N, Z, P bit*/
+        /*test N, Z, P bit*/
+        if (((mach_code & 0x0800) && NEXT_LATCHES.N)|| ((mach_code & 0x400) && NEXT_LATCHES.Z)|| ((mach_code & 0x200) && NEXT_LATCHES.P)){ 
           CURRENT_LATCHES.PC += (sEXT((mach_code & 0x01FF),9) << 1);
           printf("BR......taken to address 0x%.4x, offset: %i\n", CURRENT_LATCHES.PC, (sEXT((mach_code & 0x01FF),9) << 1));
         } 
-
-        printf("Opcode = BR.");
+        else{
+          printf("Branch not taken\n");
+        }
+        printf("Opcode = BR\n");
         break;
 
       /*ADD*/ 
