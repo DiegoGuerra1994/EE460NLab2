@@ -649,8 +649,8 @@ void process_instruction(){
         result = sEXT(CURRENT_LATCHES.REGS[SR1], 16);
         /*LSHF*/
         if(mask == 0x00){
-            result = Low16bits(result << immediate);
-            setNZP(sEXT(result));
+            result = result << immediate;
+            setNZP(result);
             NEXT_LATCHES.REGS[DR] = Low16bits(result);
             printf("Opcode = LSHF, immediate.......DR: %i, SR1: %i, imm5: %im mask: %i\n", DR, SR1, immediate, mask>>4);
         }
@@ -661,12 +661,14 @@ void process_instruction(){
             result = (result >> 1) & 0x00007FFF;
             immediate--;
           }
-          setNZP(sEXT(result));
+          setNZP(result);
           NEXT_LATCHES.REGS[DR] = Low16bits(result);
         }
         /*RSHFA, sign is shifted*/
         else{
-          NEXT_LATCHES.REGS[DR] = Low16bits(result >> immediate);
+          result = result >> immediate;
+          setNZP(result);
+          NEXT_LATCHES.REGS[DR] = Low16bits(result);
           printf("Opcode = RSHFA, immediate.......DR: %i, SR1: %i, imm5: %i, mask: %i\n", DR, SR1, immediate, mask>>4);
         }
 
