@@ -640,8 +640,9 @@ void process_instruction(){
       /*JMP*/
       case 12:
           DR = (mach_code & 0x01C0) >> 6;
-          CURRENT_LATCHES.PC = CURRENT_LATCHES.REGS[DR];
-      break;
+          CURRENT_LATCHES.PC = CURRENT_LATCHES.REGS[DR] - 2;
+          printf("JMP to address: 0x%.4x\n",CURRENT_LATCHES.REGS[DR]);
+          break;
 
       /*SHF*/
       case 13: 
