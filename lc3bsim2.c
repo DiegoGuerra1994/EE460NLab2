@@ -632,7 +632,7 @@ void process_instruction(){
         else{
           SR2 = mach_code & 0x0007;
           /*NEXT_LATCHES.REGS[DR] = Low16bits(CURRENT_LATCHES.REGS[SR1] + CURRENT_LATCHES.REGS[SR2]); */
-          result = sEXT(CURRENT_LATCHES.REGS[SR1]) ^ sEXT(CURRENT_LATCHES.REGS[SR2]); 
+          result = sEXT(CURRENT_LATCHES.REGS[SR1], 16) ^ sEXT(CURRENT_LATCHES.REGS[SR2], 16); 
           setNZP(result);
           NEXT_LATCHES.REGS[DR] = Low16bits(result);
           printf("Opcode = XOR, register.......DR: %i, SR1: %i, SR2: %i, result: %i \n", DR, SR1, SR2, result);
