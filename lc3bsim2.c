@@ -475,7 +475,7 @@ void process_instruction(){
       case 0:
         /*test for specified condition codes*/
         /*test N, Z, P bit*/
-        if (((mach_code & 0x0800) && NEXT_LATCHES.N)|| ((mach_code & 0x400) && NEXT_LATCHES.Z)|| ((mach_code & 0x200) && NEXT_LATCHES.P)){ 
+        if (((mach_code & 0x0800) && CURRENT_LATCHES.N)|| ((mach_code & 0x400) && CURRENT_LATCHES.Z)|| ((mach_code & 0x200) && CURRENT_LATCHES.P)){ 
           CURRENT_LATCHES.PC += Low16bits((sEXT((mach_code & 0x01FF),9) << 1));
           printf("BR......taken to address 0x%.4x, offset: %i\n", CURRENT_LATCHES.PC, (sEXT((mach_code & 0x01FF),9) << 1));
         } 
