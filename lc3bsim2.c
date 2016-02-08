@@ -476,7 +476,7 @@ void process_instruction(){
         /*test for specified condition codes*/
         /*test N, Z, P bit*/
         if (((mach_code & 0x0800) && NEXT_LATCHES.N)|| ((mach_code & 0x400) && NEXT_LATCHES.Z)|| ((mach_code & 0x200) && NEXT_LATCHES.P)){ 
-          CURRENT_LATCHES.PC += (sEXT((mach_code & 0x01FF),9) << 1);
+          CURRENT_LATCHES.PC += Low16bits((sEXT((mach_code & 0x01FF),9) << 1));
           printf("BR......taken to address 0x%.4x, offset: %i\n", CURRENT_LATCHES.PC, (sEXT((mach_code & 0x01FF),9) << 1));
         } 
         else{
@@ -516,7 +516,7 @@ void process_instruction(){
         DR = (mach_code & MASK11TO9) >> 9;
         baseR = (mach_code & MASK8TO6) >> 6;
         offset = (mach_code & MASK5TO0);
-        addr = CURRENT_LATCHES.REGS[baseR] + offset;
+        addr = sEXT(CURRENT_LATCHES.REGS[baseR],16) + sEXT(offset, 6);
          /*load one byte from memory depending on mem addr is odd or even*/ 
          /*Shift left 1 since mem is byte addressable */
         if (addr & 0x1){
@@ -537,7 +537,7 @@ void process_instruction(){
         SR1 = (mach_code & MASK11TO9) >> 9;
         baseR = (mach_code & MASK8TO6) >> 6;
         offset = sEXT((mach_code & MASK5TO0),6);
-        result = CURRENT_LATCHES.REGS[baseR] + offset;
+        result = sEXT(CURRENT_LATCHES.REGS[baseR],16) + offset;
         printf ("address: %i\n", result);
          /*store one byte into LSB or MSB depending on mem addr is odd or even*/ 
          /*Shift left 1 since mem is byte addressable */
@@ -595,7 +595,7 @@ void process_instruction(){
         DR = (mach_code & MASK11TO9) >> 9;
         baseR = (mach_code & MASK8TO6) >> 6;
         offset = (mach_code & MASK5TO0);
-        result = (sEXT(MEMORY[(CURRENT_LATCHES.REGS[baseR] + offset) >> 1][1], 8) << 8) + MEMORY[(CURRENT_LATCHES.REGS[baseR] + offset) >> 1][0]; 
+        result = (sEXT(MEMORY[( sEXT(CURRENT_LATCHES.REGS[baseR],16) + sEXT(offset,6)) >> 1][1], 8) << 8) + MEMORY[(sEXT(CURRENT_LATCHES.REGS[baseR],16) + sEXT(offset,6) ) >> 1][0]; 
         printf ("address: %i\n", CURRENT_LATCHES.REGS[baseR] + offset);
         NEXT_LATCHES.REGS[DR] = Low16bits(result);
         setNZP(result);
@@ -608,7 +608,7 @@ void process_instruction(){
       SR1 = (mach_code & MASK11TO9) >> 9;
       baseR = (mach_code & MASK8TO6) >> 6;
       offset = sEXT((mach_code & MASK5TO0),6) << 1;
-      result = CURRENT_LATCHES.REGS[baseR] + offset;
+      result = sEXT(CURRENT_LATCHES.REGS[baseR],16) + offset;
       printf ("address: %i\n", result);
        /*store word into memory one byte at a time. Shift left 1 since mem is byte addressable */
       MEMORY[result >> 1][0] = Low8bits(CURRENT_LATCHES.REGS[SR1]); 
@@ -632,7 +632,7 @@ void process_instruction(){
         else{
           SR2 = mach_code & 0x0007;
           /*NEXT_LATCHES.REGS[DR] = Low16bits(CURRENT_LATCHES.REGS[SR1] + CURRENT_LATCHES.REGS[SR2]); */
-          result = sEXT(CURRENT_LATCHES.REGS[SR1], 16) ^ sEXT(CURRENT_LATCHES.REGS[SR2], 16); 
+          result = sEXT(CURRENT_LATCHES.REGS[SR1], 16) ^ sEXT(CURRENT_LATCHES.REGS[SR2], 16 ); 
           setNZP(result);
           NEXT_LATCHES.REGS[DR] = Low16bits(result);
           printf("Opcode = XOR, register.......DR: %i, SR1: %i, SR2: %i, result: %i \n", DR, SR1, SR2, result);
@@ -684,7 +684,7 @@ void process_instruction(){
       case 14: 
         DR = (mach_code & MASK11TO9) >> 9;
         result = (sEXT((mach_code & 0x01FF), 16) << 1) + CURRENT_LATCHES.PC + 2;
-        NEXT_LATCHES.REGS[DR] = result;
+        NEXT_LATCHES.REGS[DR] = Low16bits(result);
         printf("Opcode = LEA.......DR: %i, address: 0x%.4x\n", DR, result);
         /*setNZP(DR); */ /*LEA does not set condition codes*/
       break;
