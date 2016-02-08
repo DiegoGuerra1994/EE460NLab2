@@ -659,11 +659,11 @@ void process_instruction(){
             result = result << immediate;
             setNZP(result);
             NEXT_LATCHES.REGS[DR] = Low16bits(result);
-            printf("Opcode = LSHF, immediate.......DR: %i, SR1: %i, imm5: %im mask: %i\n", DR, SR1, immediate, mask>>4);
+            printf("Opcode = LSHF, immediate.......DR: %i, SR1: %i, imm5: %i, mask: %i\n", DR, SR1, immediate, mask>>4);
         }
         /*RSHFL, 0s are shifted in the vacated positions*/
         else if(mask == 0x10){
-          printf("Opcode = RSHFL, immediate.......DR: %i, SR1: %i, imm5: %im mask: %i\n", DR, SR1, immediate, mask>>4);
+          printf("Opcode = RSHFL, immediate.......DR: %i, SR1: %i, imm5: %i, mask: %i\n", DR, SR1, immediate, mask>>4);
           while(immediate > 0){
             result = (result >> 1) & 0x00007FFF;
             immediate--;
@@ -693,14 +693,17 @@ void process_instruction(){
       /*TRAP*/
       case 15: 
         immediate = mach_code & 0x000000FF;
-        NEXT_LATCHES.REGS[7] = CURRENT_LATCHES.PC;
+        NEXT_LATCHES.REGS[7] = CURRENT_LATCHES.PC + 2; /*load incremented PC*/
         /*I only did this so it wouldn't skip a line going to the subrouting*/
         /*ANDREW SEZ: CHECK THIS PART!! MIGHT BE WRONG!!*/
-        CURRENT_LATCHES.PC = Low16bits((MEMORY[immediate << 1][1] << 8) + MEMORY[immediate << 1][0] - 2); 
+        
+        /*immediate = immediate << 1; */ /*dangit*/
+        printf("Opcode = TRAP, addr = 0x%.4x, hibits = 0x%.4x, lobits = 0x%.4x\n", immediate << 1, MEMORY[immediate][1] << 8, MEMORY[immediate][0]);
+        CURRENT_LATCHES.PC = Low16bits((MEMORY[immediate][1] << 8) | MEMORY[immediate][0]) - 2; 
         break;
 
       default:
-        printf("Opcode = TRAP");
+        printf("Opcode not recognized.\n");
         break;
    }
    
