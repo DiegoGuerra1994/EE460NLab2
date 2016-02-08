@@ -490,9 +490,9 @@ void process_instruction(){
          /*test bit 5 */
         DR = (mach_code & 0x0E00) >> 9;
         SR1 = (mach_code & 0x01C0) >> 6;
-        if ((mach_code & 0x20) >> 4){
+        if ( ((mach_code & 0x0020) >> 5) == 1){
            immediate = sEXT((mach_code & 0x001F), 5);
-           result = CURRENT_LATCHES.REGS[SR1] + immediate; 
+           result = sEXT(CURRENT_LATCHES.REGS[SR1],16) + immediate; 
            setNZP(result);
            printf("Opcode = ADD, immediate.......DR: %i, SR1: %i, imm5: %i, result: %i \n", DR, SR1, immediate, result);
            NEXT_LATCHES.REGS[DR] = Low16bits(result);
@@ -502,7 +502,7 @@ void process_instruction(){
         else{
           SR2 = mach_code & 0x0007;
           /*NEXT_LATCHES.REGS[DR] = Low16bits(CURRENT_LATCHES.REGS[SR1] + CURRENT_LATCHES.REGS[SR2]); */
-          result = CURRENT_LATCHES.REGS[SR1] + CURRENT_LATCHES.REGS[SR2]; 
+          result = sEXT(CURRENT_LATCHES.REGS[SR1], 16) + sEXT(CURRENT_LATCHES.REGS[SR2], 16); 
           setNZP (result);
           NEXT_LATCHES.REGS[DR] = Low16bits(result);
           printf("Opcode = ADD, register.......DR: %i, SR1: %i, SR2: %i, result: %i \n", DR, SR1, SR2, result);
@@ -572,9 +572,9 @@ void process_instruction(){
         DR = (mach_code & 0x0E00) >> 9;
         SR1 = (mach_code & 0x01C0) >> 6;
         /*Anding an immediate*/
-        if ((mach_code & 0x20) >> 4){
+        if ( ((mach_code & 0x0020) >> 5) == 1){
            immediate = sEXT((mach_code & 0x001F), 5);
-           result = CURRENT_LATCHES.REGS[SR1] & immediate; 
+           result = sEXT(CURRENT_LATCHES.REGS[SR1], 16) & immediate; 
            printf("Opcode = AND, immediate.......DR: %i, SR1: %i, imm5: %i, result: %i \n", DR, SR1, immediate, result);
            setNZP(result);
            NEXT_LATCHES.REGS[DR] = Low16bits(result);
@@ -583,8 +583,7 @@ void process_instruction(){
         /*Anding two registers*/
         else{
           SR2 = mach_code & 0x0007;
-          result = CURRENT_LATCHES.REGS[SR1] & CURRENT_LATCHES.REGS[SR2]; 
-          result = sEXT(result, 16);
+          result = sEXT(CURRENT_LATCHES.REGS[SR1], 16) & sEXT(CURRENT_LATCHES.REGS[SR2], 16); 
           setNZP(result);
           NEXT_LATCHES.REGS[DR] = Low16bits(result);
           printf("Opcode = AND, register.......DR: %i, SR1: %i, SR2: %i, result: %i \n", DR, SR1, SR2, result);
@@ -621,10 +620,10 @@ void process_instruction(){
       case 9: 
       DR = (mach_code & 0x0E00) >> 9;
       SR1 = (mach_code & 0x01C0) >> 6;
-        if  ((mach_code & 0x20) >> 4){
+        if  (( (mach_code & 0x20) >> 5) == 1){
            immediate = sEXT((mach_code & 0x001F), 5);
            printf("this is the immediate: %i\n", immediate);
-           result = CURRENT_LATCHES.REGS[SR1] ^ immediate; 
+           result = sEXT(CURRENT_LATCHES.REGS[SR1],16) ^ immediate; 
            setNZP(result);
            printf("Opcode = XOR, immediate.......DR: %i, SR1: %i, imm5: %i, result: %i \n", DR, SR1, immediate, result);
            NEXT_LATCHES.REGS[DR] = Low16bits(result);
@@ -633,7 +632,7 @@ void process_instruction(){
         else{
           SR2 = mach_code & 0x0007;
           /*NEXT_LATCHES.REGS[DR] = Low16bits(CURRENT_LATCHES.REGS[SR1] + CURRENT_LATCHES.REGS[SR2]); */
-          result = CURRENT_LATCHES.REGS[SR1] ^ CURRENT_LATCHES.REGS[SR2]; 
+          result = sEXT(CURRENT_LATCHES.REGS[SR1]) ^ sEXT(CURRENT_LATCHES.REGS[SR2]); 
           setNZP(result);
           NEXT_LATCHES.REGS[DR] = Low16bits(result);
           printf("Opcode = XOR, register.......DR: %i, SR1: %i, SR2: %i, result: %i \n", DR, SR1, SR2, result);
