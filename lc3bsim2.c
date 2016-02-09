@@ -476,8 +476,9 @@ void process_instruction(){
         /*test for specified condition codes*/
         /*test N, Z, P bit*/
         if (((mach_code & 0x0800) && CURRENT_LATCHES.N)|| ((mach_code & 0x400) && CURRENT_LATCHES.Z)|| ((mach_code & 0x200) && CURRENT_LATCHES.P)){ 
-          CURRENT_LATCHES.PC += Low16bits((sEXT((mach_code & 0x01FF),9) << 1));
-          printf("BR......taken to address 0x%.4x, offset: %i\n", CURRENT_LATCHES.PC, (sEXT((mach_code & 0x01FF),9) << 1));
+          /*CURRENT_LATCHES.PC += Low16bits((sEXT((mach_code & 0x01FF),9) << 1)); */
+          CURRENT_LATCHES.PC = Low16bits(sEXT(CURRENT_LATCHES.PC, 16) + (sEXT((mach_code & 0x01FF), 9) << 1));
+          printf("BR......taken to address 0x%.4x, offset:0x%.4x\n", CURRENT_LATCHES.PC, Low16bits(sEXT((mach_code & 0x01FF),9) << 1));
         } 
         else{
           printf("Branch not taken\n");
@@ -529,7 +530,7 @@ void process_instruction(){
         }
         printf ("address: %i\n", CURRENT_LATCHES.REGS[baseR] + offset);
         setNZP(result);
-        printf("Opcode = LDB.......DR: %i, offset: %i, baseR: %i, result: %i \n", DR, offset, baseR, result);
+        printf("Opcode = LDB.......DR: %i, offset: %i, baseR: %i, result: 0x%.4x\n", DR, offset, baseR, result);
         break;
 
       /*STB*/
@@ -601,7 +602,7 @@ void process_instruction(){
         printf ("address: 0x%.4x\n", result);
         NEXT_LATCHES.REGS[DR] = Low16bits(result);
         setNZP(result);
-        printf("Opcode = LDW.......DR: %i, offset: %i, baseR: %i, result: %i \n", DR, offset, baseR, result);
+        printf("Opcode = LDW.......DR: %i, offset: %i, baseR: %i, result: 0x%.4x\n", DR, offset, baseR, result);
       break;
 
       /*STW*/
