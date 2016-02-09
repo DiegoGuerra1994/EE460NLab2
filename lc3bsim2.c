@@ -594,13 +594,14 @@ void process_instruction(){
       case 6: 
         DR = (mach_code & MASK11TO9) >> 9;
         baseR = (mach_code & MASK8TO6) >> 6;
-        offset = (mach_code & MASK5TO0);
-        result = (sEXT(MEMORY[( sEXT(CURRENT_LATCHES.REGS[baseR],16) + sEXT(offset,6)) >> 1][1], 8) << 8) + MEMORY[(sEXT(CURRENT_LATCHES.REGS[baseR],16) + sEXT(offset,6) ) >> 1][0]; 
-        printf ("address: %i\n", CURRENT_LATCHES.REGS[baseR] + offset);
+        offset = sEXT((mach_code & MASK5TO0),6);
+        int addr = Low16bits(sEXT(CURRENT_LATCHES.REGS[baseR],16) + (offset << 1));
+        result = ( (MEMORY[addr>>1][1] << 8)&0xFF00) | (0x00FF & MEMORY[addr>>1][0]); 
+        
+        printf ("address: 0x%.4x\n", result);
         NEXT_LATCHES.REGS[DR] = Low16bits(result);
         setNZP(result);
         printf("Opcode = LDW.......DR: %i, offset: %i, baseR: %i, result: %i \n", DR, offset, baseR, result);
-        break;
       break;
 
       /*STW*/
@@ -683,7 +684,7 @@ void process_instruction(){
       /*LEA*/
       case 14: 
         DR = (mach_code & MASK11TO9) >> 9;
-        result = (sEXT((mach_code & 0x01FF), 16) << 1) + CURRENT_LATCHES.PC + 2;
+        result = (sEXT((mach_code & 0x01FF), 9) << 1) + CURRENT_LATCHES.PC + 2;
         NEXT_LATCHES.REGS[DR] = Low16bits(result);
         printf("Opcode = LEA.......DR: %i, address: 0x%.4x\n", DR, result);
         /*setNZP(DR); */ /*LEA does not set condition codes*/
