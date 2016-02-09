@@ -552,7 +552,7 @@ void process_instruction(){
 
       /*JSR and JSRR*/
       case 4:
-      NEXT_LATCHES.REGS[7] = CURRENT_LATCHES.PC;
+      NEXT_LATCHES.REGS[7] = CURRENT_LATCHES.PC+2;
       if( (0x0800 & mach_code) == 0x0800){
           offset = sEXT(mach_code & 0x07FF, 11);
           offset = offset << 1;
